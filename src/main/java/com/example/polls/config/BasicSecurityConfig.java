@@ -44,7 +44,8 @@ public class BasicSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .antMatcher("/api/auth/signin")
                 .csrf().disable()
-                .authorizeRequests().anyRequest()
+                .authorizeRequests()
+                .anyRequest()
                 .authenticated()
                 .and()
                 .httpBasic().authenticationEntryPoint(appAuthenticationEntryPoint)
