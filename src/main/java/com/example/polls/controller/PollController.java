@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.validation.Valid;
@@ -38,10 +39,10 @@ public class PollController {
     private static final Logger logger = LoggerFactory.getLogger(PollController.class);
 
     @GetMapping
-    public PagedResponse<PollResponse> getPolls(@CurrentUser UserPrincipal currentUser,
+    public PagedResponse<PollResponse> getPolls(Authentication authentication,
                                                 @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                 @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
-        return pollService.getAllPolls(currentUser, page, size);
+        return pollService.getAllPolls((UserPrincipal)authentication.getPrincipal(), page, size);
     }
 
     @PostMapping
@@ -59,17 +60,15 @@ public class PollController {
 
 
     @GetMapping("/{pollId}")
-    public PollResponse getPollById(@CurrentUser UserPrincipal currentUser,
-                                    @PathVariable String pollId) {
-        return pollService.getPollById(pollId, currentUser);
+    public PollResponse getPollById(Authentication authentication, @PathVariable String pollId) {
+        return pollService.getPollById(pollId, (UserPrincipal)authentication.getPrincipal());
     }
 
     @PostMapping("/{pollId}/votes")
     @PreAuthorize("hasRole('USER')")
-    public PollResponse castVote(@CurrentUser UserPrincipal currentUser,
-                         @PathVariable String pollId,
+    public PollResponse castVote(Authentication authentication, @PathVariable String pollId,
                          @Valid @RequestBody VoteRequest voteRequest) {
-        return pollService.castVoteAndGetUpdatedPoll(pollId, voteRequest, currentUser);
+        return pollService.castVoteAndGetUpdatedPoll(pollId, voteRequest, (UserPrincipal) authentication.getPrincipal());
     }
 
 }
