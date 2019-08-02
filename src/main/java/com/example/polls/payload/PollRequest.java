@@ -1,20 +1,20 @@
 package com.example.polls.payload;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PollRequest {
     @NotBlank
     @Size(max = 140)
@@ -23,7 +23,7 @@ public class PollRequest {
     @NotNull
     @Size(min = 2, max = 6)
     @Valid
-    private List<ChoiceRequest> choices;
+    private List<ChoiceRequest> choices = new ArrayList<>();
 
     @NotNull
     @Valid

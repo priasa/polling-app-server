@@ -1,8 +1,5 @@
 package com.example.polls.controller;
 
-import com.example.polls.PollsApplication;
-import com.example.polls.config.SecurityConfig;
-import com.example.polls.config.WebMvcConfig;
 import com.example.polls.model.Choice;
 import com.example.polls.model.Poll;
 import com.example.polls.payload.*;
@@ -14,7 +11,6 @@ import com.example.polls.service.AuthenticationService;
 import com.example.polls.service.PollService;
 import com.example.polls.util.AppConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,12 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.json.GsonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -45,9 +38,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = PollController.class)
+@WebMvcTest(controllers = PollController.class, secure = false)
 @RunWith(SpringRunner.class)
-public class PollControllerTest {
+@ContextConfiguration
+public class PollControllerUnsecureTest {
     Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @MockBean
@@ -83,42 +77,52 @@ public class PollControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "myUser")
-    public void getPolls() throws Exception {
-        PagedResponse<PollResponse> pollPagedResponse = PagedResponse.<PollResponse>builder()
-                .content(pollResponseList)
-                .page(0)
-                .size(30)
+    public void createPoll() throws Exception {
+        Choice choice = Choice.builder().id("id").text("text").build();
+        List<Choice> choices = new ArrayList<>();
+        choices.add(choice);
+
+        Poll poll = Poll.builder()
+                .id("qwerty")
+                .question("question")
+                .choices(choices)
                 .build();
-        UserPrincipal userPrincipal = new UserPrincipal("id", "name", "username",
-                "name@email.com",
-                "password",
-                new ArrayList<>());
-        given(authenticationService.getUserPrincipal()).willReturn(userPrincipal);
-        given(pollService.getAllPolls(any(UserPrincipal.class), eq(0), eq(30))).willReturn(pollPagedResponse);
 
-        mockMvc.perform(get("/api/polls").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page").value(AppConstants.DEFAULT_PAGE_NUMBER))
-                .andExpect(jsonPath("$.size").value(AppConstants.DEFAULT_PAGE_SIZE))
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content").isNotEmpty());
+        PollRequest pollRequest = new PollRequest();
+        pollRequest.setQuestion("question");
 
-        verify(pollService, times(1)).getAllPolls(any(UserPrincipal.class), anyInt(), anyInt());
+        PollLength pollLength = new PollLength();
+        pollLength.setDays(2);
+        pollLength.setHours(12);
+        pollRequest.setPollLength(pollLength);
+
+        ChoiceRequest choiceRequest1 = new ChoiceRequest();
+        choiceRequest1.setText("choice1");
+
+        ChoiceRequest choiceRequest2 = new ChoiceRequest();
+        choiceRequest2.setText("choice2");
+
+        List<ChoiceRequest> choiceRequests = new ArrayList<>();
+        choiceRequests.add(choiceRequest1);
+        choiceRequests.add(choiceRequest2);
+        pollRequest.setChoices(choiceRequests);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String content = objectMapper.writeValueAsString(pollRequest);
+
+        given(pollService.createPoll(any(PollRequest.class))).willReturn(poll);
+
+        MvcResult result = mockMvc.perform(
+                post("/api/polls")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().is(HttpStatus.CREATED.value()))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Poll Created Successfully"))
+                .andReturn();
+
+        verify(pollService, times(1)).createPoll(any(PollRequest.class));
         verifyNoMoreInteractions(this.pollService);
-    }
-
-    @Test
-    public void getPolls_WithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/api/polls").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    public void getPollById() {
-    }
-
-    @Test
-    public void castVote() {
     }
 }

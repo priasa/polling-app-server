@@ -66,15 +66,16 @@ public class PollController {
 
 
     @GetMapping("/{pollId}")
-    public PollResponse getPollById(Authentication authentication, @PathVariable String pollId) {
-        return pollService.getPollById(pollId, (UserPrincipal)authentication.getPrincipal());
+    public PollResponse getPollById(@PathVariable String pollId) {
+        UserPrincipal userPrincipal = authenticationService.getUserPrincipal();
+        return pollService.getPollById(pollId, userPrincipal);
     }
 
     @PostMapping("/{pollId}/votes")
     @PreAuthorize("hasRole('USER')")
-    public PollResponse castVote(Authentication authentication, @PathVariable String pollId,
-                         @Valid @RequestBody VoteRequest voteRequest) {
-        return pollService.castVoteAndGetUpdatedPoll(pollId, voteRequest, (UserPrincipal) authentication.getPrincipal());
+    public PollResponse castVote(@PathVariable String pollId, @Valid @RequestBody VoteRequest voteRequest) {
+        UserPrincipal userPrincipal = authenticationService.getUserPrincipal();
+        return pollService.castVoteAndGetUpdatedPoll(pollId, voteRequest, userPrincipal);
     }
 
 }
