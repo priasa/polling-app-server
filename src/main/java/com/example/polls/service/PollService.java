@@ -46,10 +46,8 @@ public class PollService {
 
     private static final Logger logger = LoggerFactory.getLogger(PollService.class);
 
-    public PagedResponse<PollResponse> getAllPolls(UserDetails userDetails, int page, int size) {
+    public PagedResponse<PollResponse> getAllPolls(UserPrincipal currentUser, int page, int size) {
         validatePageNumberAndSize(page, size);
-        // Retrieve UserPrincipal
-        UserPrincipal currentUser = (UserPrincipal)userDetails;
         // Retrieve Polls
         Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
         Page<Poll> polls = pollRepository.findAll(pageable);

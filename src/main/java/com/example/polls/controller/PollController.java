@@ -1,13 +1,12 @@
 package com.example.polls.controller;
 
-import com.example.polls.exception.AppException;
-import com.example.polls.model.*;
+import com.example.polls.model.Poll;
 import com.example.polls.payload.*;
 import com.example.polls.repository.PollRepository;
 import com.example.polls.repository.UserRepository;
 import com.example.polls.repository.VoteRepository;
-import com.example.polls.security.CurrentUser;
 import com.example.polls.security.UserPrincipal;
+import com.example.polls.service.AuthenticationService;
 import com.example.polls.service.PollService;
 import com.example.polls.util.AppConstants;
 import org.slf4j.Logger;
@@ -16,10 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import javax.validation.Valid;
 import java.net.URI;
 
@@ -39,15 +37,17 @@ public class PollController {
     @Autowired
     private PollService pollService;
 
+    @Autowired
+    private AuthenticationService authenticationService;
+
     private static final Logger logger = LoggerFactory.getLogger(PollController.class);
 
     @GetMapping
-    public ResponseEntity<?>  getPolls(Authentication authentication,
-                                                @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
-                                                @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
-        if (authentication == null)
-            throw new AppException("Authentication not found.");
-        PagedResponse<PollResponse> response = pollService.getAllPolls((UserDetails)authentication.getPrincipal(), page, size);
+    public ResponseEntity<?>  getPolls(
+            @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
+            @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
+        UserPrincipal userPrincipal = authenticationService.getUserPrincipal();
+        PagedResponse<PollResponse> response = pollService.getAllPolls(userPrincipal, page, size);
         return ResponseEntity.ok(response);
     }
 

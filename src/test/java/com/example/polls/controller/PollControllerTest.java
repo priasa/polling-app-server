@@ -6,6 +6,8 @@ import com.example.polls.payload.PollResponse;
 import com.example.polls.repository.PollRepository;
 import com.example.polls.repository.UserRepository;
 import com.example.polls.repository.VoteRepository;
+import com.example.polls.security.UserPrincipal;
+import com.example.polls.service.AuthenticationService;
 import com.example.polls.service.PollService;
 import com.example.polls.util.AppConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +48,9 @@ public class PollControllerTest {
     @MockBean
     private PollService pollService;
 
+    @MockBean
+    private AuthenticationService authenticationService;
+
     @Autowired
     MockMvc mockMvc;
 
@@ -71,8 +76,12 @@ public class PollControllerTest {
                 .page(0)
                 .size(30)
                 .build();
-
-        given(pollService.getAllPolls(any(), eq(0), eq(30))).willReturn(pollPagedResponse);
+        UserPrincipal userPrincipal = new UserPrincipal("id", "name", "username",
+                "name@email.com",
+                "password",
+                new ArrayList<>());
+        given(authenticationService.getUserPrincipal()).willReturn(userPrincipal);
+        given(pollService.getAllPolls(any(UserPrincipal.class), eq(0), eq(30))).willReturn(pollPagedResponse);
 
         mockMvc.perform(get("/api/polls").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -82,7 +91,7 @@ public class PollControllerTest {
                 .andExpect(jsonPath("$.content").isNotEmpty());
 
 
-        verify(pollService, times(1)).getAllPolls(any(), anyInt(), anyInt());
+        verify(pollService, times(1)).getAllPolls(any(UserPrincipal.class), anyInt(), anyInt());
         verifyNoMoreInteractions(this.pollService);
     }
 
