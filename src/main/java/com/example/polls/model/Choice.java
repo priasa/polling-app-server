@@ -1,9 +1,6 @@
 package com.example.polls.model;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -18,6 +15,8 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @Data
+@Builder
+@AllArgsConstructor
 public class Choice {
     @Id
     @GeneratedValue(generator = "UUID")

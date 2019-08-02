@@ -20,8 +20,10 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = false)
+@Builder
 public class Poll extends UserDateAudit {
     @Id
     @GeneratedValue(generator = "UUID")

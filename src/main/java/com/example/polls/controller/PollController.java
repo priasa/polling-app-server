@@ -1,5 +1,6 @@
 package com.example.polls.controller;
 
+import com.example.polls.exception.AppException;
 import com.example.polls.model.*;
 import com.example.polls.payload.*;
 import com.example.polls.repository.PollRepository;
@@ -15,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.validation.Valid;
@@ -39,10 +42,13 @@ public class PollController {
     private static final Logger logger = LoggerFactory.getLogger(PollController.class);
 
     @GetMapping
-    public PagedResponse<PollResponse> getPolls(Authentication authentication,
+    public ResponseEntity<?>  getPolls(Authentication authentication,
                                                 @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                 @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
-        return pollService.getAllPolls((UserPrincipal)authentication.getPrincipal(), page, size);
+        if (authentication == null)
+            throw new AppException("Authentication not found.");
+        PagedResponse<PollResponse> response = pollService.getAllPolls((UserDetails)authentication.getPrincipal(), page, size);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping

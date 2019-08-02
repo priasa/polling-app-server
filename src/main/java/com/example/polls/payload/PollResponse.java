@@ -1,10 +1,7 @@
 package com.example.polls.payload;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.List;
@@ -13,6 +10,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Data
+@AllArgsConstructor
+@Builder
 public class PollResponse {
     private String id;
     private String question;

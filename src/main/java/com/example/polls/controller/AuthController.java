@@ -54,8 +54,8 @@ public class AuthController {
 
     @PostMapping("/signin")
     @ApiOperation(value = "Authenticate user")
-    public ResponseEntity<?> authenticateUser() {
-        String jwt = tokenProvider.generateToken(SecurityContextHolder.getContext().getAuthentication());
+    public ResponseEntity<?> authenticateUser(Authentication authentication) {
+        String jwt = tokenProvider.generateToken(authentication);
         return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
     }
 

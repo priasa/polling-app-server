@@ -20,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Order(2)
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(
@@ -91,8 +92,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .antMatchers("/api/user/checkUsernameAvailability", "/api/user/checkEmailAvailability")
                 .permitAll()
-                .antMatchers(HttpMethod.GET, "/api/polls/**", "/api/users/**")
-                .permitAll()
+//                .antMatchers(HttpMethod.GET, "/api/polls/**", "/api/users/**")
+//                .permitAll()
                 .anyRequest()
                 .authenticated();
 

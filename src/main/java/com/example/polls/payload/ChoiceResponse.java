@@ -1,13 +1,12 @@
 package com.example.polls.payload;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Data
 public class ChoiceResponse {
     private String id;
