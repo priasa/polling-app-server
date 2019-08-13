@@ -26,7 +26,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,8 +37,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = PollController.class, secure = false)
 @RunWith(SpringRunner.class)
@@ -113,16 +114,81 @@ public class PollControllerUnsecureTest {
         given(pollService.createPoll(any(PollRequest.class))).willReturn(poll);
 
         MvcResult result = mockMvc.perform(
-                post("/api/polls")
+                post("http://testserver/api/polls")
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
                 .andExpect(status().is(HttpStatus.CREATED.value()))
+                .andExpect(header().string("Location", "http://testserver/api/polls/qwerty"))
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Poll Created Successfully"))
                 .andReturn();
 
         verify(pollService, times(1)).createPoll(any(PollRequest.class));
         verifyNoMoreInteractions(this.pollService);
+    }
+
+    @Test
+    public void getPollById() throws Exception {
+        String pollId = "pollId";
+        String question = "question";
+        PollResponse pollResponse = PollResponse.builder().id(pollId).question(question).build();
+
+        UserPrincipal userPrincipal = new UserPrincipal("id", "name", "username",
+                "name@email.com",
+                "password",
+                new ArrayList<>());
+        given(authenticationService.getUserPrincipal()).willReturn(userPrincipal);
+        given(pollService.getPollById(eq(pollId), any(UserPrincipal.class))).willReturn(pollResponse);
+
+        MvcResult result = mockMvc.perform(
+                get("http://testserver/api/polls/" + pollId)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(pollId))
+                .andExpect(jsonPath("$.question").value(question))
+                .andReturn();
+
+        verify(authenticationService, times(1)).getUserPrincipal();
+        verifyNoMoreInteractions(authenticationService);
+        verify(pollService, times(1)).getPollById(eq(pollId), any(UserPrincipal.class));
+        verifyNoMoreInteractions(pollService);
+    }
+
+    @Test
+    public void castVoteAndGetUpdatedPoll() throws Exception {
+        String pollId = "pollId";
+        String question = "question";
+        PollResponse pollResponse = PollResponse.builder()
+                .id(pollId)
+                .question(question)
+                .totalVotes(1l)
+                .build();
+
+        UserPrincipal userPrincipal = new UserPrincipal("id", "name", "username",
+                "name@email.com",
+                "password",
+                new ArrayList<>());
+
+        VoteRequest voteRequest = VoteRequest.builder().choiceId("choiceId").build();
+        ObjectMapper objectMapper = new ObjectMapper();
+        String content = objectMapper.writeValueAsString(voteRequest);
+        logger.info("content : " + content);
+
+        given(authenticationService.getUserPrincipal()).willReturn(userPrincipal);
+        given(pollService.castVoteAndGetUpdatedPoll(eq(pollId), any(VoteRequest.class), any(UserPrincipal.class)))
+                .willReturn(pollResponse);
+
+        mockMvc.perform(
+                post("/api/polls/" + pollId + "/votes")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(pollId))
+                .andExpect(jsonPath("$.question").value(question))
+                .andExpect(jsonPath("$.totalVotes").value(1l))
+                .andReturn();
     }
 }

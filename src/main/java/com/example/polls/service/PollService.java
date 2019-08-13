@@ -13,6 +13,7 @@ import com.example.polls.repository.VoteRepository;
 import com.example.polls.security.UserPrincipal;
 import com.example.polls.util.AppConstants;
 import com.example.polls.util.ModelMapper;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -187,17 +188,21 @@ public class PollService {
     public PollResponse castVoteAndGetUpdatedPoll(String pollId, VoteRequest voteRequest, UserPrincipal currentUser) {
         Poll poll = pollRepository.findById(pollId)
                 .orElseThrow(() -> new ResourceNotFoundException("Poll", "id", pollId));
+        logger.info("poll -> " + poll.getId());
 
         if(poll.getExpirationDateTime().isBefore(Instant.now())) {
             throw new BadRequestException("Sorry! This Poll has already expired");
         }
 
         User user = userRepository.getOne(currentUser.getId());
+        logger.info("user -> " + user.getId());
 
         Choice selectedChoice = poll.getChoices().stream()
                 .filter(choice -> choice.getId().equals(voteRequest.getChoiceId()))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Choice", "id", voteRequest.getChoiceId()));
+
+        logger.info("choice -> " + selectedChoice.getId());
 
         Vote vote = new Vote();
         vote.setPoll(poll);
@@ -206,8 +211,9 @@ public class PollService {
 
         try {
             vote = voteRepository.save(vote);
+            logger.info("vote -> " + vote.getId());
         } catch (DataIntegrityViolationException ex) {
-            logger.info("User {} has already voted in Poll {}", currentUser.getId(), pollId);
+            logger.error("User {} has already voted in Poll {}", currentUser.getId(), pollId);
             throw new BadRequestException("Sorry! You have already cast your vote in this poll");
         }
 

@@ -1,17 +1,16 @@
 package com.example.polls.payload;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class VoteRequest {
     @NotNull
-    private Long choiceId;
+    private String choiceId;
 }
 

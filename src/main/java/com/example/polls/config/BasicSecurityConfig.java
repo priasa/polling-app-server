@@ -3,6 +3,7 @@ package com.example.polls.config;
 import com.example.polls.security.AppAuthenticationEntryPoint;
 import com.example.polls.security.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;

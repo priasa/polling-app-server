@@ -9,12 +9,12 @@ import com.example.polls.security.UserPrincipal;
 import com.example.polls.service.AuthenticationService;
 import com.example.polls.service.PollService;
 import com.example.polls.util.AppConstants;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -66,16 +66,17 @@ public class PollController {
 
 
     @GetMapping("/{pollId}")
-    public PollResponse getPollById(@PathVariable String pollId) {
+    public ResponseEntity<?> getPollById(@PathVariable String pollId) {
         UserPrincipal userPrincipal = authenticationService.getUserPrincipal();
-        return pollService.getPollById(pollId, userPrincipal);
+        return ResponseEntity.ok().body(pollService.getPollById(pollId, userPrincipal));
     }
 
     @PostMapping("/{pollId}/votes")
     @PreAuthorize("hasRole('USER')")
-    public PollResponse castVote(@PathVariable String pollId, @Valid @RequestBody VoteRequest voteRequest) {
+    public ResponseEntity<?> castVote(@PathVariable String pollId, @Valid @RequestBody VoteRequest voteRequest) {
+        logger.info(new Gson().toJson(voteRequest));
         UserPrincipal userPrincipal = authenticationService.getUserPrincipal();
-        return pollService.castVoteAndGetUpdatedPoll(pollId, voteRequest, userPrincipal);
+        return ResponseEntity.ok().body(pollService.castVoteAndGetUpdatedPoll(pollId, voteRequest, userPrincipal));
     }
 
 }
