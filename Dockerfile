@@ -1,5 +1,6 @@
 FROM java:8
 LABEL maintainer="ardi.priasa@gmail.com"
+USER root
 VOLUME /tmp
 VOLUME /log
 EXPOSE 5000
