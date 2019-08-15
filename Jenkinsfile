@@ -1,12 +1,12 @@
 pipeline {
     agent any
+    tools {
+        maven 'maven3'
+      }
     stages {
         stage('---clean---') {
             steps {
-            def mvn_version = 'maven3'
-                withEnv( ["PATH+MAVEN=${tool mvn_version}/bin"] ) {
-                    sh "mvn clean"
-                }
+                sh "mvn clean"
             }
         }
         stage('--test--') {
