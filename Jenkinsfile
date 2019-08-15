@@ -16,6 +16,11 @@ pipeline {
         }
         stage('create container') {
             steps {
+                sh "sudo docker rm poll-server-app-container"
+            }
+        }
+        stage('create container') {
+            steps {
                 sh "sudo docker run -t --name poll-server-app-container --link mysql-docker-container:mysql -p 5000:5000 poll-server-app"
             }
         }
