@@ -4,19 +4,19 @@ pipeline {
         maven 'maven3'
       }
     stages {
-        stage('---clean---') {
+        stage('compile') {
             steps {
-                sh "mvn clean"
+                sh "mvn clean package"
             }
         }
-        stage('--test--') {
+        stage('build image') {
             steps {
-                sh "mvn test"
+                sh "docker build -f Dockerfile -t poll-server-app ."
             }
         }
-        stage('--package--') {
+        stage('create container') {
             steps {
-                sh "mvn package"
+                sh "docker run -t --name poll-server-app-container --link mysql-docker-container:mysql -p 5000:5000 poll-server-app"
             }
         }
     }
