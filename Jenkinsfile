@@ -16,6 +16,7 @@ pipeline {
         }
         stage('remove old container') {
             steps {
+                sh "sudo docker stop poll-server-app-container"
                 sh "sudo docker rm poll-server-app-container"
             }
         }
