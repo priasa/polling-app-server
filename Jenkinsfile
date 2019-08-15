@@ -14,7 +14,7 @@ pipeline {
                 sh "sudo docker build -f Dockerfile -t poll-server-app ."
             }
         }
-        stage('create container') {
+        stage('remove old container') {
             steps {
                 sh "sudo docker rm poll-server-app-container"
             }
