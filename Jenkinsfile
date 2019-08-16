@@ -16,8 +16,6 @@ pipeline {
         }
         stage('Preparing Container') {
             steps {
-                def container_exists = sh (
-                )
                 sh "sudo docker stop poll-server-app-container"
                 sh "sudo docker rm poll-server-app-container"
             }
