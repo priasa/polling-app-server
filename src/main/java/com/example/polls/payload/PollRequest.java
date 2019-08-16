@@ -23,6 +23,7 @@ public class PollRequest {
     @NotNull
     @Size(min = 2, max = 6)
     @Valid
+    @Builder.Default
     private List<ChoiceRequest> choices = new ArrayList<>();
 
     @NotNull

@@ -17,10 +17,15 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcSecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -34,10 +39,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = PollController.class)
+@WebMvcTest(
+        value = PollController.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebSecurityConfigurer.class),
+        excludeAutoConfiguration = MockMvcSecurityAutoConfiguration.class)
 @RunWith(SpringRunner.class)
+@ContextConfiguration
 public class PollControllerTest {
-    Logger logger = LoggerFactory.getLogger(AuthController.class);
+    Logger logger = LoggerFactory.getLogger(PollControllerTest.class);
 
     @MockBean
     private PollRepository pollRepository;
@@ -96,12 +105,4 @@ public class PollControllerTest {
         verify(pollService, times(1)).getAllPolls(any(UserPrincipal.class), anyInt(), anyInt());
         verifyNoMoreInteractions(this.pollService);
     }
-
-    @Test
-    public void getPolls_WithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/api/polls").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized());
-    }
-
-
 }

@@ -17,10 +17,15 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcSecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -39,7 +44,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = PollController.class, secure = false)
+@WebMvcTest(
+        value = PollController.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebSecurityConfigurer.class),
+        excludeAutoConfiguration = MockMvcSecurityAutoConfiguration.class)
 @RunWith(SpringRunner.class)
 @ContextConfiguration
 public class PollControllerUnsecureTest {
@@ -191,4 +199,30 @@ public class PollControllerUnsecureTest {
                 .andExpect(jsonPath("$.totalVotes").value(1l))
                 .andReturn();
     }
+
+    @Test
+    public void getPolls() throws Exception {
+        PagedResponse<PollResponse> pollPagedResponse = PagedResponse.<PollResponse>builder()
+                .content(pollResponseList)
+                .page(0)
+                .size(30)
+                .build();
+        UserPrincipal userPrincipal = new UserPrincipal("id", "name", "username",
+                "name@email.com",
+                "password",
+                new ArrayList<>());
+        given(authenticationService.getUserPrincipal()).willReturn(userPrincipal);
+        given(pollService.getAllPolls(any(UserPrincipal.class), eq(0), eq(30))).willReturn(pollPagedResponse);
+
+        mockMvc.perform(get("/api/polls").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page").value(AppConstants.DEFAULT_PAGE_NUMBER))
+                .andExpect(jsonPath("$.size").value(AppConstants.DEFAULT_PAGE_SIZE))
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content").isNotEmpty());
+
+        verify(pollService, times(1)).getAllPolls(any(UserPrincipal.class), anyInt(), anyInt());
+        verifyNoMoreInteractions(this.pollService);
+    }
+
 }
