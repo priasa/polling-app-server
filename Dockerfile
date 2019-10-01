@@ -1,4 +1,4 @@
-FROM java:8
+FROM openjdk:11
 LABEL maintainer="ardi.priasa@gmail.com"
 USER root
 VOLUME /tmp
