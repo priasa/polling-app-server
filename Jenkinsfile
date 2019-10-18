@@ -16,8 +16,8 @@ pipeline {
         }
         stage('Preparing Container') {
             steps {
-                sh "docker ps -a || grep poll-server-app-container && docker stop poll-server-app-container"
-                sh "docker ps -a || grep poll-server-app-container && docker rm poll-server-app-container"
+                sh 'docker stop poll-server-app-container || echo "docker container poll-server-app-container is not currently running"'
+                sh 'docker rm poll-server-app-container || echo "docker container poll-server-app-container is not currently running"'
             }
         }
         stage('Create container') {
