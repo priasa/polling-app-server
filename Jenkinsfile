@@ -16,8 +16,8 @@ pipeline {
         }
         stage('Preparing Container') {
             steps {
-                sh "docker stop poll-server-app-container"
-                sh "docker rm poll-server-app-container"
+                sh "docker ps -a  | grep poll-server-app-container && docker stop poll-server-app-container"
+                sh "docker ps -a  | grep poll-server-app-container && docker rm poll-server-app-container"
             }
         }
         stage('Create container') {
