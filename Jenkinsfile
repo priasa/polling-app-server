@@ -16,14 +16,16 @@ pipeline {
         }
         stage ('Preparing Database'){
             steps {
-                containerId = sh (script: "docker ps -q -f name=mysql-docker-container -f status=running", returnStdout: true).trim()
-                if (containerId == '') {
-                    echo "Start MySQL"
-                    sh 'docker start mysql-docker-container'
-                    sleep 60
+                script {
                     containerId = sh (script: "docker ps -q -f name=mysql-docker-container -f status=running", returnStdout: true).trim()
+                    if (containerId == '') {
+                        echo "Start MySQL"
+                        sh 'docker start mysql-docker-container'
+                        sleep 60
+                        containerId = sh (script: "docker ps -q -f name=mysql-docker-container -f status=running", returnStdout: true).trim()
+                    }
+                    echo "MySQL Container ID is ==> ${containerId}"
                 }
-                echo "MySQL Container ID is ==> ${containerId}"
             }
         }
         stage('Preparing Container') {
